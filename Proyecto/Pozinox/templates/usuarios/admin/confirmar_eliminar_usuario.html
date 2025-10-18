@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Usuario - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #f59e0b;
+        margin-bottom: 1.5rem;
+    }
+    
+    .delete-card h2 {
+        color: #1e3a8a;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .delete-card p {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .user-info {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .user-info h5 {
+        color: #1e3a8a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .user-info p {
+        margin: 0.25rem 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .user-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 auto 1rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .btn-delete {
+        background: #ef4444;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    .btn-delete:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .warning-text {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+    
+    .error-text {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #991b1b;
+        font-size: 0.875rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .status-superuser {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-staff {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <i class="fas fa-exclamation-triangle warning-icon"></i>
+        
+        <h2>¿Eliminar Usuario?</h2>
+        
+        <p>Esta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.</p>
+        
+        <div class="user-avatar">
+            {{ usuario.first_name|first|default:usuario.username|first|upper }}
+        </div>
+        
+        <div class="user-info">
+            <h5>{{ usuario.get_full_name|default:usuario.username }}</h5>
+            <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+            <p><strong>Email:</strong> {{ usuario.email }}</p>
+            <p><strong>Tipo:</strong> 
+                {% if usuario.perfil.tipo_usuario %}
+                    {{ usuario.perfil.get_tipo_usuario_display }}
+                {% else %}
+                    Sin tipo asignado
+                {% endif %}
+            </p>
+            <p><strong>Estado:</strong> 
+                {% if usuario.is_active %}
+                    <span class="status-badge status-active">Activo</span>
+                {% else %}
+                    <span class="status-badge status-inactive">Inactivo</span>
+                {% endif %}
+            </p>
+            <p><strong>Permisos:</strong> 
+                {% if usuario.is_superuser %}
+                    <span class="status-badge status-superuser">Superusuario</span>
+                {% elif usuario.is_staff %}
+                    <span class="status-badge status-staff">Staff</span>
+                {% else %}
+                    Usuario regular
+                {% endif %}
+            </p>
+            <p><strong>Registrado:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</p>
+            {% if usuario.last_login %}
+                <p><strong>Último acceso:</strong> {{ usuario.last_login|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="warning-text">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Advertencia:</strong> Al eliminar este usuario se perderán todos sus datos, 
+            incluyendo su perfil y cualquier información asociada. Esta acción no se puede deshacer.
+        </div>
+        
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <div class="btn-group">
+                <button type="submit" class="btn btn-danger btn-delete">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </button>
+                <a href="{% url 'lista_usuarios_admin' %}" class="btn-cancel">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

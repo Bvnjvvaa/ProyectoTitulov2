@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Productos - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+    }
+    
+    .admin-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .admin-header h1 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .btn-create {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-create:hover {
+        background: white;
+        color: #1e3a8a;
+        text-decoration: none;
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .products-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .product-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1.5rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .product-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .product-item:last-child {
+        border-bottom: none;
+    }
+    
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .product-info h5 {
+        margin: 0 0 0.5rem 0;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+    
+    .product-code {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-price {
+        color: #059669;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .product-stock {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stock-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .stock-ok {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .stock-low {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .stock-empty {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .product-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-edit {
+        background: #3b82f6;
+        color: white;
+        border: none;
+    }
+    
+    .btn-edit:hover {
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+    
+    .btn-delete:hover {
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-toggle {
+        background: #6b7280;
+        color: white;
+        border: none;
+    }
+    
+    .btn-toggle:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .pagination-wrapper {
+        padding: 1.5rem;
+        background: #f9fafb;
+    }
+    
+    .no-products {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+    
+    .no-products i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #d1d5db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-boxes me-3"></i>Gestión de Productos</h1>
+        <a href="{% url 'crear_producto' %}" class="btn-create">
+            <i class="fas fa-plus me-2"></i>Nuevo Producto
+        </a>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filters-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="Nombre, código o descripción">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <select class="form-select" name="categoria">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria_actual == categoria.id|stringformat:"s" %}selected{% endif %}>
+                            {{ categoria.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select class="form-select" name="estado">
+                    <option value="">Todos</option>
+                    <option value="activos" {% if estado_actual == "activos" %}selected{% endif %}>Activos</option>
+                    <option value="inactivos" {% if estado_actual == "inactivos" %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-2"></i>Filtrar
+                </button>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <a href="{% url 'lista_productos_admin' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Lista de productos -->
+    <div class="products-card">
+        {% if productos %}
+            {% for producto in productos %}
+                <div class="product-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            {% if producto.imagen %}
+                                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="product-image">
+                            {% else %}
+                                <div class="product-image d-flex align-items-center justify-content-center bg-light">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h5>{{ producto.nombre }}</h5>
+                            <div class="product-code">{{ producto.codigo_producto }}</div>
+                            <div class="text-muted small">{{ producto.categoria.nombre }} - {{ producto.get_tipo_acero_display }}</div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="product-price">${{ producto.precio_por_unidad|floatformat:0 }}</div>
+                            <div class="text-muted small">por {{ producto.unidad_medida }}</div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="product-stock">
+                                <span>Stock: {{ producto.stock_actual }}</span>
+                                {% if producto.stock_bajo %}
+                                    <span class="stock-badge stock-low">
+                                        <i class="fas fa-exclamation-triangle"></i> Bajo
+                                    </span>
+                                {% else %}
+                                    <span class="stock-badge stock-ok">
+                                        <i class="fas fa-check"></i> OK
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            {% if producto.activo %}
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-check-circle"></i> Activo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <i class="fas fa-times-circle"></i> Inactivo
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <div class="product-actions">
+                                <a href="{% url 'editar_producto' producto.id %}" class="btn-action btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'eliminar_producto' producto.id %}" class="btn-action btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Paginación -->
+            {% if productos.has_other_pages %}
+                <div class="pagination-wrapper">
+                    <nav aria-label="Paginación de productos">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if productos.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ productos.previous_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    {{ productos.number }} de {{ productos.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if productos.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ productos.next_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ productos.paginator.num_pages }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <h4>No se encontraron productos</h4>
+                <p>No hay productos que coincidan con los filtros aplicados.</p>
+                <a href="{% url 'crear_producto' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Crear Primer Producto
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

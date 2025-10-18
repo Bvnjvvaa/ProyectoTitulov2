@@ -1,0 +1,293 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pozinox - Tienda de Aceros{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+                <i class="fas fa-industry me-2"></i>POZINOX
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Productos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'productos' %}">
+                                <i class="fas fa-th-large me-2"></i>Ver Todos los Productos
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#">Sanitarios</a>
+                                <small class="text-muted ms-2 d-block">Industria vitivinicola, cervecera, lechera, entre otros.</small>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">Industriales</a>
+                                <small class="text-muted ms-2 d-block">Val. Bola de 1,2 y 3 cuerpos, Val. C/FLANGE, codos SCH10 - 40 CODO NPT, entre otros.</small>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">Tuberías</a>
+                                <small class="text-muted ms-2 d-block">Sanitarias 304 y 316L, normas DIN - SMS</small>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">Cañerías</a>
+                                <small class="text-muted ms-2 d-block">Calidad 304 y 316L de SCH10 - SCH40</small>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">Polipropileno</a>
+                                <small class="text-muted ms-2 d-block">Linea de acomples camblock A,B,C,D,E,F, DC Y DP.</small>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Nosotros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contacto</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'mis_cotizaciones' %}">
+                                <i class="fas fa-file-invoice"></i> Mis Cotizaciones
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-shopping-cart"></i> Carrito
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ user.first_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'perfil' %}">
+                                    <i class="fas fa-user-circle me-2"></i>Mi Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'mis_cotizaciones' %}">
+                                    <i class="fas fa-file-invoice me-2"></i>Mis Cotizaciones
+                                </a></li>
+                                {% if user.is_superuser %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'panel_admin' %}">
+                                        <i class="fas fa-tools me-2"></i>Panel Admin
+                                    </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-user"></i> Mi Cuenta
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light text-dark py-5 mt-5 border-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-industry me-2"></i>POZINOX
+                    </h5>
+                    <p class="text-muted">
+                        Tu tienda de confianza para productos de acero de alta calidad. 
+                        Especialistas en perfiles, planchas, tubos y más.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="text-light me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Productos</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Perfiles</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Planchas</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Tubos</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Varillas</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Servicios</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none">Corte</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Doblado</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Soldadura</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Asesoría</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <h6 class="fw-bold mb-3">Contacto</h6>
+                    <div class="contact-info">
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Av. Principal 123, Santiago, Chile
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            +56 2 1234 5678
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            info@pozinox.cl
+                        </p>
+                        <p class="text-muted">
+                            <i class="fas fa-clock me-2"></i>
+                            Lun - Vie: 8:00 - 18:00
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        &copy; 2025 Pozinox. Todos los derechos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-muted text-decoration-none me-3">Política de Privacidad</a>
+                    <a href="#" class="text-muted text-decoration-none">Términos y Condiciones</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- SweetAlert2 Notificaciones de Django -->
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = [
+                {% for message in messages %}
+                {
+                    type: '{{ message.tags }}',
+                    text: '{{ message|escapejs }}'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+            
+            // Mostrar notificaciones secuencialmente
+            let currentIndex = 0;
+            
+            function showNextMessage() {
+                if (currentIndex < messages.length) {
+                    const msg = messages[currentIndex];
+                    let icon = 'info';
+                    let title = 'Notificación';
+                    
+                    // Mapear tipos de Django a SweetAlert2
+                    if (msg.type === 'success') {
+                        icon = 'success';
+                        title = '¡Éxito!';
+                    } else if (msg.type === 'error' || msg.type === 'danger') {
+                        icon = 'error';
+                        title = 'Error';
+                    } else if (msg.type === 'warning') {
+                        icon = 'warning';
+                        title = 'Advertencia';
+                    } else if (msg.type === 'info') {
+                        icon = 'info';
+                        title = 'Información';
+                    }
+                    
+                    Swal.fire({
+                        icon: icon,
+                        title: title,
+                        text: msg.text,
+                        confirmButtonText: 'Aceptar',
+                        timer: 5000,
+                        timerProgressBar: true,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInDown'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutUp'
+                        },
+                        customClass: {
+                            confirmButton: 'btn btn-primary px-4'
+                        },
+                        buttonsStyling: false
+                    }).then(() => {
+                        currentIndex++;
+                        showNextMessage();
+                    });
+                }
+            }
+            
+            showNextMessage();
+        });
+    </script>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

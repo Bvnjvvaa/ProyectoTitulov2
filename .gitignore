@@ -1,0 +1,17 @@
+# Archivos de video grandes
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Archivos de base de datos
+*.db
+*.sqlite3
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

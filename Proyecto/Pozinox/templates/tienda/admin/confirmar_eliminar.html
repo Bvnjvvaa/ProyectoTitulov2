@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Producto - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #f59e0b;
+        margin-bottom: 1.5rem;
+    }
+    
+    .delete-card h2 {
+        color: #1e3a8a;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .delete-card p {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .product-info {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .product-info h5 {
+        color: #1e3a8a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .product-info p {
+        margin: 0.25rem 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .product-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        float: right;
+        margin-left: 1rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .btn-delete {
+        background: #ef4444;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    .btn-delete:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .warning-text {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <i class="fas fa-exclamation-triangle warning-icon"></i>
+        
+        <h2>¿Eliminar Producto?</h2>
+        
+        <p>Esta acción no se puede deshacer. El producto será eliminado permanentemente del sistema.</p>
+        
+        <div class="product-info">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="product-image">
+            {% endif %}
+            
+            <h5>{{ producto.nombre }}</h5>
+            <p><strong>Código:</strong> {{ producto.codigo_producto }}</p>
+            <p><strong>Categoría:</strong> {{ producto.categoria.nombre }}</p>
+            <p><strong>Tipo:</strong> {{ producto.get_tipo_acero_display }}</p>
+            <p><strong>Precio:</strong> ${{ producto.precio_por_unidad|floatformat:0 }}</p>
+            <p><strong>Stock:</strong> {{ producto.stock_actual }} {{ producto.unidad_medida }}</p>
+            {% if producto.activo %}
+                <p><span class="badge bg-success">Activo</span></p>
+            {% else %}
+                <p><span class="badge bg-secondary">Inactivo</span></p>
+            {% endif %}
+        </div>
+        
+        <div class="warning-text">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Advertencia:</strong> Si este producto tiene pedidos asociados, la eliminación puede afectar el historial de ventas.
+        </div>
+        
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <div class="btn-group">
+                <button type="submit" class="btn btn-danger btn-delete">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </button>
+                <a href="{% url 'lista_productos_admin' %}" class="btn-cancel">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

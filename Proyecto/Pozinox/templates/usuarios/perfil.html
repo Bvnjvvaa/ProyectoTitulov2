@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    
+    .profile-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .profile-header h2 {
+        color: #1e3a8a;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 3rem;
+        color: white;
+    }
+    
+    .profile-info {
+        margin-bottom: 2rem;
+    }
+    
+    .info-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Estilos para Token Display */
+    .token-display-text {
+        font-family: 'Courier New', monospace;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #1e3a8a;
+        letter-spacing: 3px;
+        background: #f0f9ff;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: 1px solid #bfdbfe;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .token-display-text.revealed {
+        background: #fef3c7;
+        border-color: #fbbf24;
+    }
+    
+    .info-value {
+        color: #6b7280;
+        background: #f9fafb;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .badge-tipo {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .btn-edit {
+        background: #10b981;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-edit:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-logout {
+        background: #ef4444;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-logout:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2>Mi Perfil</h2>
+            <p class="text-muted">Gestiona tu información personal</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="profile-info">
+                    <!-- Información Personal -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Nombre</div>
+                                <div class="info-value">{{ user.first_name|default:"No especificado" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Apellido</div>
+                                <div class="info-value">{{ user.last_name|default:"No especificado" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ user.email|default:"No especificado" }}</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <div class="info-label">Usuario</div>
+                        <div class="info-value">{{ user.username }}</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <div class="info-label">Tipo de Usuario</div>
+                        <div class="info-value">
+                            <span class="badge-tipo">{{ user.perfil.get_tipo_usuario_display }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Token de Chatbot -->
+                    <div class="info-group">
+                        <div class="info-label">
+                            <i class="fas fa-robot me-2"></i>Token de Chatbot
+                        </div>
+                        <div class="info-value d-flex align-items-center">
+                            {% if user.perfil.api_token %}
+                                <span id="tokenDisplay" class="token-display-text me-2" data-token="{{ user.perfil.api_token }}">••••••</span>
+                                <button id="toggleToken" class="btn btn-sm btn-outline-secondary" type="button">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                                <button id="copyTokenBtn" class="btn btn-sm btn-outline-primary ms-2" type="button">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            {% else %}
+                                <span class="text-muted">Sin token generado</span>
+                                <button id="generateTokenBtn" class="btn btn-sm btn-success ms-2" type="button">
+                                    <i class="fas fa-plus me-1"></i>Generar
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Información de Contacto -->
+                    {% if user.perfil.telefono or user.perfil.direccion %}
+                    <h5 class="mt-4 mb-3 text-primary">
+                        <i class="fas fa-address-book me-2"></i>Información de Contacto
+                    </h5>
+                    
+                    {% if user.perfil.telefono %}
+                    <div class="info-group">
+                        <div class="info-label">Teléfono</div>
+                        <div class="info-value">{{ user.perfil.telefono }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.perfil.direccion %}
+                    <div class="info-group">
+                        <div class="info-label">Dirección</div>
+                        <div class="info-value">{{ user.perfil.direccion }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.perfil.comuna or user.perfil.ciudad %}
+                    <div class="row">
+                        {% if user.perfil.comuna %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Comuna</div>
+                                <div class="info-value">{{ user.perfil.comuna }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if user.perfil.ciudad %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Ciudad</div>
+                                <div class="info-value">{{ user.perfil.ciudad }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    
+                    <!-- Información de Cuenta -->
+                    <h5 class="mt-4 mb-3 text-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>Información de Cuenta
+                    </h5>
+                    
+                    <div class="info-group">
+                        <div class="info-label">Fecha de Registro</div>
+                        <div class="info-value">{{ user.date_joined|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <div class="info-label">Último Acceso</div>
+                        <div class="info-value">{{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-edit text-white">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar Perfil
+                    </button>
+                    
+                    <button class="btn btn-logout text-white">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Botón de cerrar sesión
+    document.querySelector('.btn-logout').addEventListener('click', function() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            window.location.href = '{% url "logout" %}';
+        }
+    });
+    
+    // Botón de editar perfil (por implementar)
+    document.querySelector('.btn-edit').addEventListener('click', function() {
+        alert('Función de editar perfil próximamente disponible');
+    });
+    
+    // Funcionalidad para mostrar/ocultar token
+    const tokenDisplay = document.getElementById('tokenDisplay');
+    const toggleToken = document.getElementById('toggleToken');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const copyTokenBtn = document.getElementById('copyTokenBtn');
+    const generateTokenBtn = document.getElementById('generateTokenBtn');
+    
+    if (tokenDisplay && toggleToken) {
+        let isVisible = false;
+        const actualToken = tokenDisplay.getAttribute('data-token');
+        
+        // Alternar visibilidad del token
+        toggleToken.addEventListener('click', function() {
+            if (isVisible) {
+                // Ocultar
+                tokenDisplay.textContent = '••••••';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+                tokenDisplay.classList.remove('revealed');
+                isVisible = false;
+            } else {
+                // Mostrar
+                tokenDisplay.textContent = actualToken;
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+                tokenDisplay.classList.add('revealed');
+                isVisible = true;
+            }
+        });
+        
+        // Copiar token
+        copyTokenBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(actualToken).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Copiado!',
+                    text: 'Token copiado al portapapeles',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        });
+    }
+    
+    // Generar token si no existe
+    if (generateTokenBtn) {
+        generateTokenBtn.addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Generando...';
+            
+            // Obtener CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch('{% url "api_generate_token" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Token Generado!',
+                        text: `Tu token es: ${data.token}`,
+                        confirmButtonText: 'Recargar página'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo generar el token'
+                    });
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-plus me-1"></i>Generar';
+                }
+            })
+            .catch(error => {
+                console.error('Error completo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error de conexión: ' + error.message
+                });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus me-1"></i>Generar';
+            });
+        });
+    }
+    
+</script>
+{% endblock %}

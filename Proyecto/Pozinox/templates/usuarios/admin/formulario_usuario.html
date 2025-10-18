@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        padding: 6rem 2rem 2rem 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .header h1 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.875rem;
+        font-weight: 600;
+    }
+    
+    .btn-back {
+        background: #6b7280;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .btn-back:hover {
+        background: #4b5563;
+        color: white;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.125rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .required::after {
+        content: " *";
+        color: #ef4444;
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 0.75rem;
+        width: 100%;
+        font-size: 0.875rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input {
+        margin-right: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+    }
+    
+    .form-check-label {
+        color: #374151;
+        font-weight: 500;
+    }
+    
+    .help-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    
+    .warning {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .btn-save {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .btn-save:hover {
+        background: #2563eb;
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+    }
+    
+    .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .full-width {
+        grid-column: 1 / -1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="header">
+        <h1>{{ titulo }}</h1>
+        <a href="{% url 'lista_usuarios_admin' %}" class="btn-back">← Volver</a>
+    </div>
+    
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h3 class="section-title">Información Personal</h3>
+                
+                <div class="row">
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="form-label required">Usuario</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="error-message">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="form-label required">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="error-message">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label required">Nombre</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="error-message">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label required">Apellido</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="error-message">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contraseña -->
+            <div class="form-section">
+                <h3 class="section-title">Seguridad</h3>
+                
+                <div class="row">
+                    <div>
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="error-message">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                        {% if form.password.help_text %}
+                            <div class="help-text">{{ form.password.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirmar Contraseña</label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <div class="error-message">{{ form.confirm_password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Perfil -->
+            <div class="form-section">
+                <h3 class="section-title">Perfil</h3>
+                
+                <div class="row">
+                    <div>
+                        <label for="{{ form.tipo_usuario.id_for_label }}" class="form-label">Tipo de Usuario</label>
+                        {{ form.tipo_usuario }}
+                        {% if form.tipo_usuario.errors %}
+                            <div class="error-message">{{ form.tipo_usuario.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="error-message">{{ form.telefono.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="full-width">
+                    <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección</label>
+                    {{ form.direccion }}
+                    {% if form.direccion.errors %}
+                        <div class="error-message">{{ form.direccion.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div>
+                        <label for="{{ form.comuna.id_for_label }}" class="form-label">Comuna</label>
+                        {{ form.comuna }}
+                        {% if form.comuna.errors %}
+                            <div class="error-message">{{ form.comuna.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.ciudad.id_for_label }}" class="form-label">Ciudad</label>
+                        {{ form.ciudad }}
+                        {% if form.ciudad.errors %}
+                            <div class="error-message">{{ form.ciudad.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Permisos -->
+            <div class="form-section">
+                <h3 class="section-title">Permisos</h3>
+                
+                <div class="form-check">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" class="form-check-label">Usuario Activo</label>
+                    <div class="help-text">Los usuarios inactivos no podrán acceder al sistema</div>
+                </div>
+                
+                <div class="form-check">
+                    {{ form.is_staff }}
+                    <label for="{{ form.is_staff.id_for_label }}" class="form-check-label">Personal Administrativo</label>
+                </div>
+                
+                <div class="form-check">
+                    {{ form.is_superuser }}
+                    <label for="{{ form.is_superuser.id_for_label }}" class="form-check-label">Superusuario</label>
+                </div>
+                
+                <div class="warning">
+                    <strong>Advertencia:</strong> Los permisos de Staff y Superusuario otorgan acceso administrativo al sistema.
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Guardar Usuario</button>
+                <a href="{% url 'lista_usuarios_admin' %}" class="btn-cancel">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

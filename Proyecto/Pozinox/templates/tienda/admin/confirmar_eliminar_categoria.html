@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Categoría - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #f59e0b;
+        margin-bottom: 1.5rem;
+    }
+    
+    .delete-card h2 {
+        color: #1e3a8a;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .delete-card p {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .category-info {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .category-info h5 {
+        color: #1e3a8a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .category-info p {
+        margin: 0.25rem 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .btn-delete {
+        background: #ef4444;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    .btn-delete:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        flex: 1;
+        max-width: 200px;
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .warning-text {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #92400e;
+        font-size: 0.875rem;
+    }
+    
+    .error-text {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #991b1b;
+        font-size: 0.875rem;
+    }
+    
+    .products-list {
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .product-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .product-item:last-child {
+        border-bottom: none;
+    }
+    
+    .product-name {
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .product-code {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <i class="fas fa-exclamation-triangle warning-icon"></i>
+        
+        <h2>¿Eliminar Categoría?</h2>
+        
+        <p>Esta acción no se puede deshacer. La categoría será eliminada permanentemente del sistema.</p>
+        
+        <div class="category-icon">
+            <i class="fas fa-tag"></i>
+        </div>
+        
+        <div class="category-info">
+            <h5>{{ categoria.nombre }}</h5>
+            {% if categoria.descripcion %}
+                <p><strong>Descripción:</strong> {{ categoria.descripcion }}</p>
+            {% endif %}
+            <p><strong>Estado:</strong> 
+                {% if categoria.activa %}
+                    <span class="badge bg-success">Activa</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactiva</span>
+                {% endif %}
+            </p>
+            <p><strong>Productos asociados:</strong> {{ productos_asociados }}</p>
+        </div>
+        
+        {% if productos_asociados > 0 %}
+            <div class="error-text">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>No se puede eliminar:</strong> Esta categoría tiene {{ productos_asociados }} producto{{ productos_asociados|pluralize }} asociado{{ productos_asociados|pluralize }}. 
+                Primero debes mover o eliminar estos productos.
+            </div>
+            
+            <div class="btn-group">
+                <a href="{% url 'lista_categorias_admin' %}" class="btn-cancel">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <a href="{% url 'lista_productos_admin' %}?categoria={{ categoria.id }}" class="btn btn-primary" style="flex: 1; max-width: 200px;">
+                    <i class="fas fa-boxes me-2"></i>Ver Productos
+                </a>
+            </div>
+        {% else %}
+            <div class="warning-text">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Confirmación:</strong> Esta categoría no tiene productos asociados y puede ser eliminada de forma segura.
+            </div>
+            
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-danger btn-delete">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                    <a href="{% url 'lista_categorias_admin' %}" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

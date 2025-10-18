@@ -1,0 +1,79 @@
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Git
+.git/
+.gitignore
+
+# Archivos de Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Archivos de documentación
+README.md
+*.md
+
+# Archivos de logs
+*.log
+logs/
+
+# Archivos temporales
+tmp/
+temp/
+
+# Archivos de base de datos local
+db.sqlite3
+*.sqlite3
+
+# Archivos de media (se montarán como volúmenes)
+media/
+
+# Archivos estáticos (se generarán en el contenedor)
+staticfiles/
+
+# Archivos de configuración local
+.env
+.env.local
+.env.development
+.env.production
+
+# Archivos de evidencia del proyecto
+FASE 1/

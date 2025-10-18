@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cotización {{ cotizacion.numero_cotizacion }} - Pozinox{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-3">
+                <i class="fas fa-file-invoice me-2"></i>Cotización {{ cotizacion.numero_cotizacion }}
+            </h2>
+            <p class="text-muted">
+                Creada el {{ cotizacion.fecha_creacion|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if cotizacion.estado == 'borrador' %}
+                <span class="badge bg-secondary fs-5">Borrador</span>
+            {% elif cotizacion.estado == 'finalizada' %}
+                <span class="badge bg-info fs-5">Finalizada</span>
+            {% elif cotizacion.estado == 'pagada' %}
+                <span class="badge bg-success fs-5">Pagada</span>
+            {% else %}
+                <span class="badge bg-danger fs-5">Cancelada</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Productos en la cotización -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Productos en la Cotización
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if detalles %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Código</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                        {% if puede_editar %}
+                                        <th>Acciones</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles %}
+                                    <tr>
+                                        <td>{{ detalle.producto.nombre }}</td>
+                                        <td>{{ detalle.producto.codigo_producto }}</td>
+                                        <td>
+                                            {% if puede_editar %}
+                                            <input type="number" class="form-control form-control-sm cantidad-input" 
+                                                   data-detalle-id="{{ detalle.id }}"
+                                                   value="{{ detalle.cantidad }}" 
+                                                   min="1" 
+                                                   style="width: 80px;">
+                                            {% else %}
+                                            {{ detalle.cantidad }}
+                                            {% endif %}
+                                        </td>
+                                        <td>${{ detalle.precio_unitario|floatformat:0 }}</td>
+                                        <td class="subtotal-{{ detalle.id }}">${{ detalle.subtotal|floatformat:0 }}</td>
+                                        {% if puede_editar %}
+                                        <td>
+                                            <form method="post" action="{% url 'eliminar_producto_cotizacion' detalle.id %}" 
+                                                  onsubmit="return confirm('¿Eliminar este producto?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5>No hay productos en esta cotización</h5>
+                            <p class="text-muted">Agrega productos desde la sección de la derecha</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Agregar productos (solo si está en borrador) -->
+            {% if puede_editar %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Agregar Productos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <form method="get" class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <select name="categoria" class="form-select" onchange="this.form.submit()">
+                                <option value="">Todas las categorías</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar producto...">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-secondary w-100">Buscar</button>
+                        </div>
+                    </form>
+
+                    <!-- Lista de productos disponibles -->
+                    {% if productos_disponibles %}
+                    <div class="row">
+                        {% for producto in productos_disponibles %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ producto.nombre }}</h6>
+                                    <p class="card-text small text-muted mb-2">
+                                        <strong>Código:</strong> {{ producto.codigo_producto }}
+                                    </p>
+                                    <p class="card-text">
+                                        <strong class="text-primary">${{ producto.precio_por_unidad|floatformat:0 }}</strong>
+                                        <span class="text-muted">/ {{ producto.unidad_medida }}</span>
+                                    </p>
+                                    <form method="post" action="{% url 'agregar_producto_cotizacion' cotizacion.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" name="cantidad" class="form-control" 
+                                                   value="1" min="1" required>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-plus me-1"></i>Agregar
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Todos los productos disponibles ya están en tu cotización.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Resumen de la cotización -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 100px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>Resumen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong id="subtotal-total">${{ cotizacion.subtotal|floatformat:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>IVA (19%):</span>
+                        <strong id="iva-total">${{ cotizacion.iva|floatformat:0 }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Total:</h5>
+                        <h5 class="text-primary" id="total-total">${{ cotizacion.total|floatformat:0 }}</h5>
+                    </div>
+
+                    {% if cotizacion.estado == 'borrador' %}
+                        {% if detalles %}
+                        <a href="{% url 'finalizar_cotizacion' cotizacion.id %}" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-check me-2"></i>Finalizar Cotización
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary w-100 mb-2" disabled>
+                            <i class="fas fa-check me-2"></i>Agregar productos primero
+                        </button>
+                        {% endif %}
+                    {% elif cotizacion.estado == 'finalizada' %}
+                        <a href="{% url 'seleccionar_pago' cotizacion.id %}" class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                        </a>
+                    {% elif cotizacion.estado == 'pagada' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Cotización pagada
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'descargar_cotizacion_pdf' cotizacion.id %}" class="btn btn-outline-success w-100 mb-2" target="_blank">
+                        <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                    </a>
+                    
+                    <a href="{% url 'mis_cotizaciones' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+
+                {% if cotizacion.observaciones %}
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <strong>Observaciones:</strong><br>
+                        {{ cotizacion.observaciones }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if puede_editar %}
+<script>
+// Actualizar cantidad de producto mediante AJAX
+document.querySelectorAll('.cantidad-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const detalleId = this.dataset.detalleId;
+        const cantidad = this.value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/cotizaciones/detalle/${detalleId}/actualizar-cantidad/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `cantidad=${cantidad}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar subtotal del producto
+                document.querySelector(`.subtotal-${detalleId}`).textContent = 
+                    '$' + Math.round(data.subtotal).toLocaleString('es-CL');
+                
+                // Actualizar totales
+                document.getElementById('subtotal-total').textContent = 
+                    '$' + Math.round(data.total_cotizacion * 100 / 119).toLocaleString('es-CL');
+                document.getElementById('iva-total').textContent = 
+                    '$' + Math.round(data.total_cotizacion * 19 / 119).toLocaleString('es-CL');
+                document.getElementById('total-total').textContent = 
+                    '$' + Math.round(data.total_cotizacion).toLocaleString('es-CL');
+            } else {
+                alert('Error al actualizar la cantidad');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar la cantidad');
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
+

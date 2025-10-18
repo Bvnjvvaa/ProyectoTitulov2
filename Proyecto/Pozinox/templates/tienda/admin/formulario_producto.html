@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .form-header h1 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .btn-back {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-back:hover {
+        background: white;
+        color: #1e3a8a;
+        text-decoration: none;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        color: #1e3a8a;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-title i {
+        font-size: 1.25rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(30, 58, 138, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .image-preview {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        margin-top: 1rem;
+    }
+    
+    .image-placeholder {
+        width: 200px;
+        height: 200px;
+        background: #f3f4f6;
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        margin-top: 1rem;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1><i class="fas fa-boxes me-3"></i>{{ titulo }}</h1>
+        <a href="{% url 'lista_productos_admin' %}" class="btn-back">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+        </a>
+    </div>
+    
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información Básica
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">
+                                {{ form.nombre.label }}
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.nombre.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.codigo_producto.id_for_label }}" class="form-label required-field">
+                                {{ form.codigo_producto.label }}
+                            </label>
+                            {{ form.codigo_producto }}
+                            {% if form.codigo_producto.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.codigo_producto.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label required-field">
+                        {{ form.descripcion.label }}
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.descripcion.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label required-field">
+                                {{ form.categoria.label }}
+                            </label>
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.categoria.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.tipo_acero.id_for_label }}" class="form-label required-field">
+                                {{ form.tipo_acero.label }}
+                            </label>
+                            {{ form.tipo_acero }}
+                            {% if form.tipo_acero.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.tipo_acero.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Especificaciones Técnicas -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-ruler-combined"></i>
+                    Especificaciones Técnicas
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="{{ form.grosor.id_for_label }}" class="form-label">
+                                {{ form.grosor.label }}
+                            </label>
+                            {{ form.grosor }}
+                            {% if form.grosor.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.grosor.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="{{ form.ancho.id_for_label }}" class="form-label">
+                                {{ form.ancho.label }}
+                            </label>
+                            {{ form.ancho }}
+                            {% if form.ancho.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.ancho.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="{{ form.largo.id_for_label }}" class="form-label">
+                                {{ form.largo.label }}
+                            </label>
+                            {{ form.largo }}
+                            {% if form.largo.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.largo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="{{ form.peso_por_metro.id_for_label }}" class="form-label">
+                                {{ form.peso_por_metro.label }}
+                            </label>
+                            {{ form.peso_por_metro }}
+                            {% if form.peso_por_metro.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.peso_por_metro.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Precios -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-dollar-sign"></i>
+                    Precios
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.precio_por_unidad.id_for_label }}" class="form-label required-field">
+                                {{ form.precio_por_unidad.label }}
+                            </label>
+                            {{ form.precio_por_unidad }}
+                            {% if form.precio_por_unidad.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.precio_por_unidad.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.precio_por_metro.id_for_label }}" class="form-label">
+                                {{ form.precio_por_metro.label }}
+                            </label>
+                            {{ form.precio_por_metro }}
+                            {% if form.precio_por_metro.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.precio_por_metro.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.precio_por_kg.id_for_label }}" class="form-label">
+                                {{ form.precio_por_kg.label }}
+                            </label>
+                            {{ form.precio_por_kg }}
+                            {% if form.precio_por_kg.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.precio_por_kg.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stock e Inventario -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-warehouse"></i>
+                    Stock e Inventario
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.stock_actual.id_for_label }}" class="form-label required-field">
+                                {{ form.stock_actual.label }}
+                            </label>
+                            {{ form.stock_actual }}
+                            {% if form.stock_actual.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.stock_actual.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.stock_minimo.id_for_label }}" class="form-label required-field">
+                                {{ form.stock_minimo.label }}
+                            </label>
+                            {{ form.stock_minimo }}
+                            {% if form.stock_minimo.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.stock_minimo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.unidad_medida.id_for_label }}" class="form-label required-field">
+                                {{ form.unidad_medida.label }}
+                            </label>
+                            {{ form.unidad_medida }}
+                            <div class="help-text">Ej: unidad, metro, kg, m², etc.</div>
+                            {% if form.unidad_medida.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.unidad_medida.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Imagen y Estado -->
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="fas fa-image"></i>
+                    Imagen y Estado
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.imagen.id_for_label }}" class="form-label">
+                                {{ form.imagen.label }}
+                            </label>
+                            {{ form.imagen }}
+                            {% if form.imagen.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.imagen.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Preview de imagen -->
+                            {% if producto and producto.imagen %}
+                                <img src="{{ producto.imagen.url }}" alt="Imagen actual" class="image-preview">
+                            {% else %}
+                                <div class="image-placeholder">
+                                    <i class="fas fa-image fa-3x"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.activo }}
+                                <label for="{{ form.activo.id_for_label }}" class="form-check-label">
+                                    {{ form.activo.label }}
+                                </label>
+                            </div>
+                            <div class="help-text">Los productos inactivos no se mostrarán en la tienda pública</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary btn-save">
+                        <i class="fas fa-save me-2"></i>Guardar Producto
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'lista_productos_admin' %}" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preview de imagen
+    document.getElementById('{{ form.imagen.id_for_label }}').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.querySelector('.image-preview') || document.querySelector('.image-placeholder');
+                if (preview) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="image-preview">';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

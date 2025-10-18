@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seleccionar Pago - Cotización {{ cotizacion.numero_cotizacion }} - Pozinox{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Seleccionar Método de Pago
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Resumen de la cotización -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Cotización: {{ cotizacion.numero_cotizacion }}</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ cotizacion.fecha_finalizacion|date:"d/m/Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h3 class="text-primary mb-0">${{ cotizacion.total|floatformat:0 }}</h3>
+                            <p class="text-muted">Total a pagar</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Detalle de productos -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Productos incluidos:</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles %}
+                                    <tr>
+                                        <td>{{ detalle.producto.nombre }}</td>
+                                        <td>{{ detalle.cantidad }}</td>
+                                        <td>${{ detalle.precio_unitario|floatformat:0 }}</td>
+                                        <td class="text-end">${{ detalle.subtotal|floatformat:0 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                        <td class="text-end"><strong>${{ cotizacion.subtotal|floatformat:0 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>IVA (19%):</strong></td>
+                                        <td class="text-end"><strong>${{ cotizacion.iva|floatformat:0 }}</strong></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td colspan="3" class="text-end"><h5 class="mb-0">Total:</h5></td>
+                                        <td class="text-end"><h5 class="mb-0">${{ cotizacion.total|floatformat:0 }}</h5></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Métodos de pago -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Seleccione un método de pago:</h5>
+                        
+                        <div class="row g-3">
+                            <!-- MercadoPago -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-2 border-primary">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-wallet fa-3x text-primary mb-3"></i>
+                                        <h5 class="card-title">MercadoPago</h5>
+                                        <p class="card-text text-muted">
+                                            Paga con tarjeta de crédito, débito o efectivo de manera segura
+                                        </p>
+                                        <a href="{% url 'procesar_pago_mercadopago' cotizacion.id %}" 
+                                           class="btn btn-primary w-100">
+                                            <i class="fas fa-credit-card me-2"></i>Pagar con MercadoPago
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transferencia Bancaria -->
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-university fa-3x text-info mb-3"></i>
+                                        <h5 class="card-title">Transferencia Bancaria</h5>
+                                        <p class="card-text text-muted">
+                                            Realiza una transferencia a nuestra cuenta bancaria
+                                        </p>
+                                        <button class="btn btn-info w-100" disabled>
+                                            <i class="fas fa-building me-2"></i>Próximamente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Efectivo -->
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-money-bill-wave fa-3x text-success mb-3"></i>
+                                        <h5 class="card-title">Efectivo</h5>
+                                        <p class="card-text text-muted">
+                                            Paga en efectivo al retirar tu pedido
+                                        </p>
+                                        <button class="btn btn-success w-100" disabled>
+                                            <i class="fas fa-hand-holding-usd me-2"></i>Próximamente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información adicional -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Información importante:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Una vez realizado el pago, recibirás un correo de confirmación</li>
+                            <li>El pago es procesado de manera segura</li>
+                            <li>Si tienes problemas con el pago, contacta a nuestro soporte</li>
+                        </ul>
+                    </div>
+
+                    <!-- Botones de navegación -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'detalle_cotizacion' cotizacion.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a la Cotización
+                        </a>
+                        <a href="{% url 'mis_cotizaciones' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Ver Mis Cotizaciones
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

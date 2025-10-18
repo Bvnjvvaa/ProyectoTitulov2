@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Categorías - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        min-height: calc(100vh - 200px);
+        padding: 6rem 0 2rem 0;
+    }
+    
+    .admin-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .admin-header h1 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .btn-create {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-create:hover {
+        background: white;
+        color: #1e3a8a;
+        text-decoration: none;
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .categories-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .category-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1.5rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .category-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .category-item:last-child {
+        border-bottom: none;
+    }
+    
+    .category-info h5 {
+        margin: 0 0 0.5rem 0;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+    
+    .category-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    
+    .category-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-item {
+        background: #f3f4f6;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        color: #374151;
+    }
+    
+    .stat-item i {
+        color: #3b82f6;
+        margin-right: 0.25rem;
+    }
+    
+    .category-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-edit {
+        background: #3b82f6;
+        color: white;
+        border: none;
+    }
+    
+    .btn-edit:hover {
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+    
+    .btn-delete:hover {
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .pagination-wrapper {
+        padding: 1.5rem;
+        background: #f9fafb;
+    }
+    
+    .no-categories {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+    
+    .no-categories i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #d1d5db;
+    }
+    
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-tags me-3"></i>Gestión de Categorías</h1>
+        <a href="{% url 'crear_categoria' %}" class="btn-create">
+            <i class="fas fa-plus me-2"></i>Nueva Categoría
+        </a>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filters-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Buscar</label>
+                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="Nombre o descripción">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Estado</label>
+                <select class="form-select" name="estado">
+                    <option value="">Todas</option>
+                    <option value="activas" {% if estado_actual == "activas" %}selected{% endif %}>Activas</option>
+                    <option value="inactivas" {% if estado_actual == "inactivas" %}selected{% endif %}>Inactivas</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-2"></i>Filtrar
+                </button>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <a href="{% url 'lista_categorias_admin' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Lista de categorías -->
+    <div class="categories-card">
+        {% if categorias %}
+            {% for categoria in categorias %}
+                <div class="category-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <div class="category-icon">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>{{ categoria.nombre }}</h5>
+                            {% if categoria.descripcion %}
+                                <div class="category-description">{{ categoria.descripcion }}</div>
+                            {% else %}
+                                <div class="category-description text-muted">Sin descripción</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="category-stats">
+                                <div class="stat-item">
+                                    <i class="fas fa-boxes"></i>
+                                    {{ categoria.producto_set.count }} producto{{ categoria.producto_set.count|pluralize }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-1">
+                            {% if categoria.activa %}
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-check-circle"></i> Activa
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <i class="fas fa-times-circle"></i> Inactiva
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <div class="category-actions">
+                                <a href="{% url 'editar_categoria' categoria.id %}" class="btn-action btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'eliminar_categoria' categoria.id %}" class="btn-action btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Paginación -->
+            {% if categorias.has_other_pages %}
+                <div class="pagination-wrapper">
+                    <nav aria-label="Paginación de categorías">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if categorias.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ categorias.previous_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    {{ categorias.number }} de {{ categorias.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if categorias.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ categorias.next_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ categorias.paginator.num_pages }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-categories">
+                <i class="fas fa-tags"></i>
+                <h4>No se encontraron categorías</h4>
+                <p>No hay categorías que coincidan con los filtros aplicados.</p>
+                <a href="{% url 'crear_categoria' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Crear Primera Categoría
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

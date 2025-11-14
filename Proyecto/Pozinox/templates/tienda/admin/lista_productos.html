@@ -1,21 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}Gestión de Productos - Pozinox{% endblock %}
+{% block admin_title %}Gestión de Productos{% endblock %}
 
-{% block extra_css %}
+{% block admin_extra_css %}
 <style>
-    .admin-container {
-        min-height: calc(100vh - 200px);
-        padding: 6rem 0 2rem 0;
-    }
-    
     .admin-header {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
         color: white;
         padding: 1.5rem 2rem;
         margin-bottom: 2rem;
-        border-radius: 15px;
+        border-radius: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -23,31 +18,31 @@
     
     .admin-header h1 {
         margin: 0;
-        font-weight: 700;
+        font-weight: 600;
     }
     
     .btn-create {
         background: rgba(255,255,255,0.2);
-        border: 2px solid white;
+        border: 1px solid rgba(255,255,255,0.3);
         color: white;
         padding: 0.75rem 1.5rem;
-        border-radius: 10px;
+        border-radius: 6px;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.3s ease;
     }
     
     .btn-create:hover {
         background: white;
-        color: #1e3a8a;
+        color: #007bff;
         text-decoration: none;
     }
     
     .filters-card {
         background: white;
-        border-radius: 15px;
+        border-radius: 8px;
         padding: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
         margin-bottom: 2rem;
     }
     
@@ -212,14 +207,13 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1><i class="fas fa-boxes me-3"></i>Gestión de Productos</h1>
-        <a href="{% url 'crear_producto' %}" class="btn-create">
-            <i class="fas fa-plus me-2"></i>Nuevo Producto
-        </a>
-    </div>
+{% block admin_content %}
+<div class="admin-header">
+    <h1><i class="fas fa-boxes me-3"></i>Gestión de Productos</h1>
+    <a href="{% url 'crear_producto' %}" class="btn-create">
+        <i class="fas fa-plus me-2"></i>Nuevo Producto
+    </a>
+</div>
     
     <!-- Filtros -->
     <div class="filters-card">
@@ -381,5 +375,4 @@
             </div>
         {% endif %}
     </div>
-</div>
 {% endblock %}

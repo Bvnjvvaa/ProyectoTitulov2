@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - Pozinox{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-edit-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    
+    .profile-edit-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .profile-edit-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .profile-edit-header h2 {
+        color: #1e3a8a;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .form-check {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        color: #1e3a8a;
+        font-weight: 600;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <div class="profile-edit-card">
+        <div class="profile-edit-header">
+            <i class="fas fa-user-edit fa-3x text-primary mb-3"></i>
+            <h2>Editar Perfil</h2>
+            <p class="text-muted">Actualiza tu información personal</p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h5 class="section-title">
+                <i class="fas fa-user me-2"></i>Información Personal
+            </h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.first_name }}
+                        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.first_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.last_name }}
+                        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.last_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-floating">
+                {{ form.email }}
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <h5 class="section-title">
+                <i class="fas fa-address-book me-2"></i>Información de Contacto
+            </h5>
+            
+            <div class="form-floating">
+                {{ form.telefono }}
+                <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                {% if form.telefono.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.telefono.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-floating">
+                {{ form.direccion }}
+                <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+                {% if form.direccion.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.direccion.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.comuna }}
+                        <label for="{{ form.comuna.id_for_label }}">{{ form.comuna.label }}</label>
+                        {% if form.comuna.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.comuna.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.ciudad }}
+                        <label for="{{ form.ciudad.id_for_label }}">{{ form.ciudad.label }}</label>
+                        {% if form.ciudad.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.ciudad.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <h5 class="section-title">
+                <i class="fas fa-calendar me-2"></i>Información Adicional
+            </h5>
+            
+            <div class="form-floating">
+                {{ form.fecha_nacimiento }}
+                <label for="{{ form.fecha_nacimiento.id_for_label }}">{{ form.fecha_nacimiento.label }}</label>
+                {% if form.fecha_nacimiento.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.fecha_nacimiento.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-check">
+                {{ form.notificaciones_email }}
+                <label class="form-check-label" for="{{ form.notificaciones_email.id_for_label }}">
+                    {{ form.notificaciones_email.label }}
+                </label>
+                {% if form.notificaciones_email.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.notificaciones_email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <a href="{% url 'perfil' %}" class="btn btn-cancel">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-save text-white">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+{% endblock %}
+

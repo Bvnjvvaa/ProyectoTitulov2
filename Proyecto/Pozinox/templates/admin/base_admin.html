@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block admin_title %}Panel de Administración{% endblock %} - Pozinox{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% block admin_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-tools me-2"></i>Panel Admin</h3>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{% url 'panel_admin' %}" class="menu-item {% if request.resolver_match.url_name == 'panel_admin' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt menu-icon"></i>
+                <div class="menu-text">
+                    <div class="menu-title">Dashboard</div>
+                    <div class="menu-description">Resumen general</div>
+                </div>
+            </a>
+            
+            <a href="{% url 'lista_productos_admin' %}" class="menu-item {% if 'productos' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-boxes menu-icon"></i>
+                <div class="menu-text">
+                    <div class="menu-title">Productos</div>
+                    <div class="menu-description">Gestionar inventario</div>
+                </div>
+            </a>
+            
+            <a href="{% url 'lista_categorias_admin' %}" class="menu-item {% if 'categorias' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-tags menu-icon"></i>
+                <div class="menu-text">
+                    <div class="menu-title">Categorías</div>
+                    <div class="menu-description">Organizar productos</div>
+                </div>
+            </a>
+            
+            <a href="{% url 'panel_verificacion_transferencias' %}" class="menu-item {% if 'transferencias' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-university menu-icon"></i>
+                <div class="menu-text">
+                    <div class="menu-title">Transferencias</div>
+                    <div class="menu-description">Verificar pagos</div>
+                </div>
+            </a>
+            
+            <a href="{% url 'admin:index' %}" class="menu-item">
+                <i class="fas fa-cog menu-icon"></i>
+                <div class="menu-text">
+                    <div class="menu-title">Django Admin</div>
+                    <div class="menu-description">Panel avanzado</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Contenido Principal -->
+    <div class="admin-content">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% block admin_extra_js %}{% endblock %}
+{% endblock %}

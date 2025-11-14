@@ -260,10 +260,10 @@
             
             <div class="col-md-4">
                 <div class="d-grid gap-2">
-                    <button class="btn btn-edit text-white">
+                    <a href="{% url 'editar_perfil' %}" class="btn btn-edit text-white">
                         <i class="fas fa-edit me-2"></i>
                         Editar Perfil
-                    </button>
+                    </a>
                     
                     <button class="btn btn-logout text-white">
                         <i class="fas fa-sign-out-alt me-2"></i>
@@ -285,10 +285,6 @@
         }
     });
     
-    // Botón de editar perfil (por implementar)
-    document.querySelector('.btn-edit').addEventListener('click', function() {
-        alert('Función de editar perfil próximamente disponible');
-    });
     
     // Funcionalidad para mostrar/ocultar token
     const tokenDisplay = document.getElementById('tokenDisplay');

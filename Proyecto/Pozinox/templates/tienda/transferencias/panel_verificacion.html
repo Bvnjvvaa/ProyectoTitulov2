@@ -1,0 +1,317 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block admin_title %}Panel de Verificación de Transferencias{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1><i class="fas fa-university me-2"></i>Panel de Verificación de Transferencias</h1>
+    <a href="{% url 'panel_verificacion_transferencias' %}" class="btn-refresh">
+        <i class="fas fa-sync-alt me-2"></i>Actualizar
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="filters-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Estado:</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos los estados</option>
+                <option value="pendiente" {% if estado_actual == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                <option value="verificando" {% if estado_actual == 'verificando' %}selected{% endif %}>En Verificación</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Buscar:</label>
+            <input type="text" name="q" class="form-control" placeholder="Número de cotización..." value="{{ busqueda }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="fas fa-filter me-1"></i>Filtrar
+            </button>
+            <a href="{% url 'panel_verificacion_transferencias' %}" class="btn btn-secondary">
+                <i class="fas fa-sync-alt me-1"></i>Limpiar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Lista de transferencias -->
+<div class="transfers-card">
+    <div class="transfers-header">
+        <h3>Transferencias ({{ transferencias.paginator.count }})</h3>
+    </div>
+    
+    {% if transferencias %}
+        <div class="transfers-list">
+            {% for transferencia in transferencias %}
+                <div class="transfer-item">
+                    <div class="transfer-info">
+                        <div class="transfer-header">
+                            <h4>Cotización #{{ transferencia.cotizacion.numero_cotizacion }}</h4>
+                            <span class="transfer-status status-{{ transferencia.estado }}">
+                                {{ transferencia.get_estado_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="transfer-details">
+                            <div class="detail-item">
+                                <i class="fas fa-user"></i>
+                                <span>{{ transferencia.cotizacion.cliente.nombre }} {{ transferencia.cotizacion.cliente.apellido }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span>${{ transferencia.monto_transferencia|floatformat:0 }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ transferencia.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% if transferencia.comprobante %}
+                                <div class="detail-item">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>Comprobante adjunto</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="transfer-actions">
+                        <a href="{% url 'verificar_transferencia' transferencia.id %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>Verificar
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if transferencias.has_other_pages %}
+            <div class="pagination-wrapper">
+                <nav aria-label="Paginación de transferencias">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if transferencias.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ transferencias.previous_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                {{ transferencias.number }} de {{ transferencias.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if transferencias.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ transferencias.next_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ transferencias.paginator.num_pages }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="no-transfers">
+            <i class="fas fa-university"></i>
+            <h4>No hay transferencias</h4>
+            <p>No se encontraron transferencias que coincidan con los filtros aplicados.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block admin_extra_css %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .admin-header h1 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .btn-refresh {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-refresh:hover {
+        background: white;
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .transfers-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .transfers-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .transfers-header h3 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .transfers-list {
+        padding: 0;
+    }
+    
+    .transfer-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+    
+    .transfer-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .transfer-item:last-child {
+        border-bottom: none;
+    }
+    
+    .transfer-info {
+        flex: 1;
+    }
+    
+    .transfer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .transfer-header h4 {
+        margin: 0;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .transfer-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-verificando {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .transfer-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        color: #666;
+        font-size: 0.875rem;
+    }
+    
+    .detail-item i {
+        margin-right: 0.5rem;
+        color: #007bff;
+    }
+    
+    .transfer-actions {
+        margin-left: 1rem;
+    }
+    
+    .pagination-wrapper {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .pagination .page-link {
+        color: #007bff;
+    }
+    
+    .no-transfers {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+    
+    .no-transfers i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+    
+    .no-transfers h4 {
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .no-transfers p {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}

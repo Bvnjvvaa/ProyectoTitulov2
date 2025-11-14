@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subir Comprobante - Cotización {{ cotizacion.numero_cotizacion }} - Pozinox{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Subir Comprobante de Transferencia
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la transferencia -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Cotización: {{ cotizacion.numero_cotizacion }}</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Creada: {{ transferencia.fecha_creacion|date:"d/m/Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h3 class="text-primary mb-0">${{ transferencia.monto_transferencia|floatformat:0 }}</h3>
+                            <p class="text-muted">Monto a verificar</p>
+                        </div>
+                    </div>
+
+                    <!-- Datos bancarios -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-building me-2"></i>Datos de la Transferencia
+                        </h5>
+                        <div class="alert alert-info">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Banco:</strong> {{ transferencia.banco_destino }}<br>
+                                    <strong>Tipo de Cuenta:</strong> {{ transferencia.tipo_cuenta }}<br>
+                                    <strong>Número de Cuenta:</strong> {{ transferencia.numero_cuenta }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Titular:</strong> {{ transferencia.nombre_titular }}<br>
+                                    <strong>Monto:</strong> <span class="h5 text-primary">${{ transferencia.monto_transferencia|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Archivo del comprobante -->
+                        <div class="mb-4">
+                            <label for="comprobante" class="form-label">
+                                <i class="fas fa-file-upload me-2"></i>Comprobante de Transferencia *
+                            </label>
+                            <input type="file" class="form-control" id="comprobante" name="comprobante" 
+                                   accept=".pdf,.jpg,.jpeg,.png" required>
+                            <div class="form-text">
+                                Formatos aceptados: PDF, JPG, PNG. Tamaño máximo: 10MB
+                            </div>
+                        </div>
+
+                        <!-- Número de transacción -->
+                        <div class="mb-3">
+                            <label for="numero_transaccion" class="form-label">
+                                <i class="fas fa-hashtag me-2"></i>Número de Transacción (opcional)
+                            </label>
+                            <input type="text" class="form-control" id="numero_transaccion" 
+                                   name="numero_transaccion" placeholder="Ej: 1234567890">
+                            <div class="form-text">
+                                Si tu banco te proporcionó un número de transacción, ingrésalo aquí
+                            </div>
+                        </div>
+
+                        <!-- Fecha de transferencia -->
+                        <div class="mb-3">
+                            <label for="fecha_transferencia" class="form-label">
+                                <i class="fas fa-calendar me-2"></i>Fecha de la Transferencia (opcional)
+                            </label>
+                            <input type="datetime-local" class="form-control" id="fecha_transferencia" 
+                                   name="fecha_transferencia">
+                            <div class="form-text">
+                                Fecha y hora en que realizaste la transferencia
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mb-4">
+                            <label for="observaciones" class="form-label">
+                                <i class="fas fa-comment me-2"></i>Observaciones (opcional)
+                            </label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" 
+                                      rows="3" placeholder="Agrega cualquier información adicional sobre la transferencia..."></textarea>
+                        </div>
+
+                        <!-- Información importante -->
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Información Importante
+                            </h6>
+                            <ul class="mb-0">
+                                <li>El comprobante debe mostrar claramente el monto transferido: <strong>${{ transferencia.monto_transferencia|floatformat:0 }}</strong></li>
+                                <li>Debe incluir los datos de la cuenta destino: <strong>{{ transferencia.numero_cuenta }}</strong></li>
+                                <li>La verificación puede tomar hasta 24 horas hábiles</li>
+                                <li>Recibirás una notificación cuando sea aprobada o rechazada</li>
+                            </ul>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'detalle_transferencia' cotizacion.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-upload me-2"></i>Subir Comprobante
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Validación del archivo
+    document.getElementById('comprobante').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. El tamaño máximo es 10MB.');
+                e.target.value = '';
+                return;
+            }
+            
+            // Validar tipo de archivo
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Tipo de archivo no válido. Solo se permiten PDF, JPG y PNG.');
+                e.target.value = '';
+                return;
+            }
+            
+            // Mostrar información del archivo
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'mt-2 text-success';
+            fileInfo.innerHTML = `<i class="fas fa-check me-1"></i>Archivo seleccionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            
+            // Remover información anterior si existe
+            const existingInfo = e.target.parentNode.querySelector('.text-success');
+            if (existingInfo) {
+                existingInfo.remove();
+            }
+            
+            e.target.parentNode.appendChild(fileInfo);
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

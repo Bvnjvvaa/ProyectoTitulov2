@@ -1,7 +1,5 @@
 // Pozinox - Main JavaScript
-
 document.addEventListener('DOMContentLoaded', function() {
-    
     // Initialize all components
     initNavbar();
     initAnimations();

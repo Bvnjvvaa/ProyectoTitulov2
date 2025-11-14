@@ -144,6 +144,160 @@ class RegistroForm(UserCreationForm):
         return user
 
 
+class PasswordResetRequestForm(forms.Form):
+    """Formulario para solicitar recuperación de contraseña"""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com',
+            'autofocus': True
+        }),
+        label='Email'
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Verificar si el email existe en el sistema
+            if not User.objects.filter(email=email).exists():
+                # Por seguridad, no revelamos si el email existe o no
+                # Simplemente mostramos un mensaje genérico
+                pass
+        return email
+
+
+class PasswordResetForm(forms.Form):
+    """Formulario para reestablecer contraseña"""
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña'
+        }),
+        label='Nueva Contraseña',
+        min_length=8,
+        help_text='La contraseña debe tener al menos 8 caracteres.'
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmar nueva contraseña'
+        }),
+        label='Confirmar Nueva Contraseña'
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('new_password1')
+        password2 = cleaned_data.get('new_password2')
+
+        if password1 and password2:
+            if password1 != password2:
+                raise forms.ValidationError('Las contraseñas no coinciden.')
+            if len(password1) < 8:
+                raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres.')
+
+        return cleaned_data
+
+
+class PerfilEditForm(forms.ModelForm):
+    """Formulario para editar perfil de usuario"""
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre'
+        }),
+        label='Nombre'
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Apellido'
+        }),
+        label='Apellido'
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com'
+        }),
+        label='Email'
+    )
+    
+    class Meta:
+        model = PerfilUsuario
+        fields = ['telefono', 'direccion', 'comuna', 'ciudad', 'fecha_nacimiento', 'notificaciones_email']
+        widgets = {
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+56 9 1234 5678'
+            }),
+            'direccion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Dirección completa'
+            }),
+            'comuna': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Comuna'
+            }),
+            'ciudad': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ciudad'
+            }),
+            'fecha_nacimiento': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'notificaciones_email': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'telefono': 'Teléfono',
+            'direccion': 'Dirección',
+            'comuna': 'Comuna',
+            'ciudad': 'Ciudad',
+            'fecha_nacimiento': 'Fecha de Nacimiento',
+            'notificaciones_email': 'Recibir notificaciones por email',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Verificar si el email ya existe (excepto para el usuario actual)
+            queryset = User.objects.filter(email=email)
+            if self.instance and self.instance.user:
+                queryset = queryset.exclude(pk=self.instance.user.pk)
+            if queryset.exists():
+                raise forms.ValidationError('Este email ya está registrado.')
+        return email
+
+    def save(self, commit=True):
+        perfil = super().save(commit=False)
+        if commit:
+            perfil.save()
+            # Actualizar datos del usuario
+            user = perfil.user
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.email = self.cleaned_data['email']
+            user.save()
+        return perfil
+
+
 class UsuarioForm(forms.ModelForm):
     """Formulario para crear y editar usuarios desde el Panel Admin"""
     

@@ -10,8 +10,9 @@ from django.utils.html import strip_tags
 from django.utils import timezone
 from django.conf import settings
 from django.http import JsonResponse
-from .models import PerfilUsuario, EmailVerificationToken
-from .forms import LoginForm, RegistroForm, UsuarioForm
+from django.urls import reverse
+from .models import PerfilUsuario, EmailVerificationToken, PasswordResetToken
+from .forms import LoginForm, RegistroForm, UsuarioForm, PasswordResetRequestForm, PasswordResetForm, PerfilEditForm
 
 
 def login_view(request):
@@ -114,6 +115,23 @@ def logout_view(request):
 def perfil_view(request):
     """Vista para mostrar el perfil del usuario"""
     return render(request, 'usuarios/perfil.html', {'user': request.user})
+
+
+@login_required
+def editar_perfil_view(request):
+    """Vista para editar el perfil del usuario"""
+    perfil = request.user.perfil
+    
+    if request.method == 'POST':
+        form = PerfilEditForm(request.POST, instance=perfil)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tu perfil ha sido actualizado exitosamente.')
+            return redirect('perfil')
+    else:
+        form = PerfilEditForm(instance=perfil)
+    
+    return render(request, 'usuarios/editar_perfil.html', {'form': form})
 
 
 # Decorador para verificar si es superusuario
@@ -447,5 +465,161 @@ def api_revoke_token(request):
             })
     
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+# ============================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ============================================
+
+def enviar_email_recuperacion(request, user, reset_token):
+    """Enviar email con link de recuperación de contraseña"""
+    # Construir URL de recuperación
+    reset_url = request.build_absolute_uri(
+        reverse('password_reset_confirm', kwargs={'token': reset_token.token})
+    )
+    
+    # Renderizar template HTML del email
+    html_message = render_to_string('usuarios/email_recuperacion_contraseña.html', {
+        'user': user,
+        'reset_url': reset_url,
+        'expires_hours': 24,
+    })
+    
+    # Crear versión texto plano
+    plain_message = f"""
+Hola {user.get_full_name() or user.username},
+
+Has solicitado recuperar tu contraseña en Pozinox.
+
+Para reestablecer tu contraseña, haz clic en el siguiente enlace:
+{reset_url}
+
+Este enlace es válido por 24 horas.
+
+Si no solicitaste recuperar tu contraseña, puedes ignorar este mensaje.
+
+Saludos,
+Equipo Pozinox
+    """
+    
+    # Enviar email
+    try:
+        send_mail(
+            subject='Recuperar contraseña - Pozinox',
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Error al enviar email de recuperación: {e}")
+        return False
+
+
+@csrf_protect
+def password_reset_request(request):
+    """Vista para solicitar recuperación de contraseña"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            try:
+                # Buscar usuario por email
+                user = User.objects.get(email=email)
+                
+                # Invalidar tokens anteriores no usados
+                PasswordResetToken.objects.filter(
+                    user=user,
+                    is_used=False
+                ).update(is_used=True)
+                
+                # Crear nuevo token
+                reset_token = PasswordResetToken.objects.create(user=user)
+                
+                # Enviar email
+                if enviar_email_recuperacion(request, user, reset_token):
+                    messages.success(
+                        request,
+                        'Se ha enviado un enlace de recuperación a tu correo electrónico. '
+                        'Por favor, revisa tu bandeja de entrada.'
+                    )
+                else:
+                    messages.error(
+                        request,
+                        'Hubo un error al enviar el email. Por favor, intenta nuevamente.'
+                    )
+                
+                # Por seguridad, siempre mostrar el mismo mensaje
+                # independientemente de si el email existe o no
+                return redirect('password_reset_request')
+            except User.DoesNotExist:
+                # Por seguridad, no revelar si el email existe
+                messages.success(
+                    request,
+                    'Si el email existe en nuestro sistema, recibirás un enlace de recuperación.'
+                )
+                return redirect('password_reset_request')
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, 'usuarios/password_reset_request.html', {'form': form})
+
+
+@csrf_protect
+def password_reset_confirm(request, token):
+    """Vista para reestablecer contraseña con el token"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    # Buscar token válido
+    try:
+        reset_token = PasswordResetToken.objects.get(token=token)
+        
+        # Verificar si el token es válido
+        if not reset_token.is_valid():
+            messages.error(
+                request,
+                'El enlace de recuperación ha expirado o ya fue utilizado. '
+                'Por favor, solicita un nuevo enlace.'
+            )
+            return redirect('password_reset_request')
+        
+        if request.method == 'POST':
+            form = PasswordResetForm(request.POST)
+            if form.is_valid():
+                # Cambiar contraseña
+                user = reset_token.user
+                user.set_password(form.cleaned_data['new_password1'])
+                user.save()
+                
+                # Marcar token como usado
+                reset_token.mark_as_used()
+                
+                messages.success(
+                    request,
+                    'Tu contraseña ha sido reestablecida exitosamente. '
+                    'Ahora puedes iniciar sesión con tu nueva contraseña.'
+                )
+                return redirect('login')
+        else:
+            form = PasswordResetForm()
+        
+        return render(request, 'usuarios/password_reset_confirm.html', {
+            'form': form,
+            'token': token
+        })
+        
+    except PasswordResetToken.DoesNotExist:
+        messages.error(
+            request,
+            'El enlace de recuperación es inválido. Por favor, solicita un nuevo enlace.'
+        )
+        return redirect('password_reset_request')
 
 

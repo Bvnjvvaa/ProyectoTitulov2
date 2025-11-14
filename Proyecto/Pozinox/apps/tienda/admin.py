@@ -1,18 +1,14 @@
 from django.contrib import admin
-from .models import Producto, CategoriaAcero, Cliente, Pedido, DetallePedido, Cotizacion, DetalleCotizacion
+from .models import Producto, CategoriaAcero, Cliente, Pedido, DetallePedido, Cotizacion, DetalleCotizacion, TransferenciaBancaria
 
 
 @admin.register(CategoriaAcero)
 class CategoriaAceroAdmin(admin.ModelAdmin):
     """Administración de categorías de acero"""
-    list_display = ['nombre', 'activa', 'created_at']
+    list_display = ['nombre', 'activa', 'id']
     list_filter = ['activa']
     search_fields = ['nombre', 'descripcion']
     ordering = ['nombre']
-    
-    def created_at(self, obj):
-        return obj.id  # Placeholder para mostrar algo
-    created_at.short_description = 'ID'
 
 
 @admin.register(Producto)
@@ -122,3 +118,39 @@ class DetalleCotizacionAdmin(admin.ModelAdmin):
     list_filter = ['cotizacion__estado']
     search_fields = ['cotizacion__numero_cotizacion', 'producto__nombre']
     ordering = ['-cotizacion__fecha_creacion']
+
+
+@admin.register(TransferenciaBancaria)
+class TransferenciaBancariaAdmin(admin.ModelAdmin):
+    """Administración de transferencias bancarias"""
+    list_display = ['cotizacion', 'estado', 'monto_transferencia', 'fecha_creacion', 'verificada_por']
+    list_filter = ['estado', 'fecha_creacion', 'verificada_por']
+    search_fields = ['cotizacion__numero_cotizacion', 'numero_transaccion', 'observaciones_cliente']
+    ordering = ['-fecha_creacion']
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion', 'fecha_verificacion']
+    
+    fieldsets = (
+        ('Información de la Transferencia', {
+            'fields': ('cotizacion', 'estado', 'monto_transferencia', 'fecha_transferencia', 'numero_transaccion')
+        }),
+        ('Datos Bancarios', {
+            'fields': ('banco_destino', 'tipo_cuenta', 'numero_cuenta', 'nombre_titular')
+        }),
+        ('Comprobante', {
+            'fields': ('comprobante', 'observaciones_cliente')
+        }),
+        ('Verificación', {
+            'fields': ('verificada_por', 'fecha_verificacion', 'observaciones_verificador')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_creacion', 'fecha_actualizacion', 'fecha_expiracion')
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Filtrar transferencias según el rol del usuario"""
+        qs = super().get_queryset(request)
+        if not request.user.is_superuser:
+            # Los trabajadores solo ven transferencias pendientes y en verificación
+            qs = qs.filter(estado__in=['pendiente', 'verificando'])
+        return qs

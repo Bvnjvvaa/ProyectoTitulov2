@@ -7,7 +7,11 @@ urlpatterns = [
     path('registro/', views.registro_view, name='registro'),
     path('logout/', views.logout_view, name='logout'),
     path('perfil/', views.perfil_view, name='perfil'),
+    path('perfil/editar/', views.editar_perfil_view, name='editar_perfil'),
     
+    # Recuperación de contraseña
+    path('password-reset/', views.password_reset_request, name='password_reset_request'),
+    path('password-reset/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
     
     # URLs AJAX para verificación
     path('ajax/enviar-codigo/', views.enviar_codigo_verificacion_ajax, name='enviar_codigo_ajax'),

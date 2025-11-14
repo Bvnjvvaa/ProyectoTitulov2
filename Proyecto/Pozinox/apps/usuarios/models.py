@@ -243,4 +243,39 @@ class EmailVerificationToken(models.Model):
             return True
         
         return False
+
+
+class PasswordResetToken(models.Model):
+    """Token para recuperación de contraseña"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
     
+    class Meta:
+        verbose_name = 'Token de Recuperación de Contraseña'
+        verbose_name_plural = 'Tokens de Recuperación de Contraseña'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Token para {self.user.email} - {'Usado' if self.is_used else 'Activo'}"
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            # Generar token único
+            import secrets
+            self.token = secrets.token_urlsafe(32)
+        if not self.expires_at:
+            # Token válido por 24 horas
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        """Verificar si el token es válido"""
+        return not self.is_used and timezone.now() < self.expires_at
+    
+    def mark_as_used(self):
+        """Marcar token como usado"""
+        self.is_used = True
+        self.save()

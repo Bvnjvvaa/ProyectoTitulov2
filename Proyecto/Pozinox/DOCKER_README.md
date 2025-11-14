@@ -12,8 +12,6 @@ Este documento explica cómo ejecutar el proyecto Pozinox usando Docker y Docker
 
 ### 1. Configurar Variables de Entorno
 
-Copia el archivo de ejemplo y configura las variables:
-
 ```bash
 cp env.example .env
 ```

@@ -3,10 +3,12 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
 from decimal import Decimal
+from django.utils import timezone
+from datetime import timedelta
 
 
 class CategoriaAcero(models.Model):
-    """Categorías de productos de acero (perfiles, planchas, tubos, etc.)"""
+    """Categorías de productos de acero"""
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
     activa = models.BooleanField(default=True)
@@ -196,13 +198,14 @@ class Cotizacion(models.Model):
     ESTADOS_COTIZACION = [
         ('borrador', 'Borrador'),
         ('finalizada', 'Finalizada'),
+        ('en_revision', 'En Revisión'),
         ('pagada', 'Pagada'),
         ('cancelada', 'Cancelada'),
     ]
     
     METODOS_PAGO = [
         ('mercadopago', 'MercadoPago'),
-        ('transferencia', 'Transferencia'),
+        ('transferencia', 'Transferencia Bancaria'),
         ('efectivo', 'Efectivo'),
     ]
     
@@ -227,6 +230,10 @@ class Cotizacion(models.Model):
     # MercadoPago
     mercadopago_preference_id = models.CharField(max_length=100, blank=True, null=True)
     mercadopago_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Comprobante de pago (para transferencia)
+    comprobante_pago = models.FileField(upload_to='comprobantes/', null=True, blank=True, storage=S3Boto3Storage(), help_text="Comprobante de transferencia bancaria")
+    comentarios_pago = models.TextField(blank=True, help_text="Comentarios adicionales sobre el pago")
     
     # Observaciones
     observaciones = models.TextField(blank=True)
@@ -279,3 +286,84 @@ class DetalleCotizacion(models.Model):
         super().save(*args, **kwargs)
         # Actualizar totales de la cotización
         self.cotizacion.calcular_totales()
+
+
+class TransferenciaBancaria(models.Model):
+    """Transferencias bancarias para pagos de cotizaciones"""
+    ESTADOS_TRANSFERENCIA = [
+        ('pendiente', 'Pendiente de Verificación'),
+        ('verificando', 'En Verificación'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+        ('expirada', 'Expirada'),
+    ]
+    
+    cotizacion = models.OneToOneField(Cotizacion, on_delete=models.CASCADE, related_name='transferencia')
+    estado = models.CharField(max_length=20, choices=ESTADOS_TRANSFERENCIA, default='pendiente')
+    
+    # Datos bancarios (ficticios para DuocUC)
+    banco_destino = models.CharField(max_length=100, default='Banco DuocUC')
+    tipo_cuenta = models.CharField(max_length=50, default='Cuenta Corriente')
+    numero_cuenta = models.CharField(max_length=20, default='12.345.678-9')
+    nombre_titular = models.CharField(max_length=200, default='Duoc UC')
+    
+    # Información de la transferencia
+    monto_transferencia = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_transferencia = models.DateTimeField(null=True, blank=True)
+    numero_transaccion = models.CharField(max_length=50, blank=True, help_text="Número de transacción bancaria")
+    
+    # Comprobante
+    comprobante = models.FileField(upload_to='comprobantes/', storage=S3Boto3Storage(), null=True, blank=True)
+    observaciones_cliente = models.TextField(blank=True, help_text="Observaciones del cliente")
+    
+    # Verificación
+    verificada_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='transferencias_verificadas')
+    fecha_verificacion = models.DateTimeField(null=True, blank=True)
+    observaciones_verificador = models.TextField(blank=True, help_text="Observaciones del verificador")
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    fecha_expiracion = models.DateTimeField(help_text="Fecha límite para realizar la transferencia")
+    
+    class Meta:
+        verbose_name = 'Transferencia Bancaria'
+        verbose_name_plural = 'Transferencias Bancarias'
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"Transferencia {self.cotizacion.numero_cotizacion} - {self.get_estado_display()}"
+    
+    def save(self, *args, **kwargs):
+        if not self.fecha_expiracion:
+            from datetime import timedelta
+            from django.utils import timezone
+            # La transferencia expira en 3 días
+            self.fecha_expiracion = timezone.now() + timedelta(days=3)
+        super().save(*args, **kwargs)
+    
+    @property
+    def esta_expirada(self):
+        from django.utils import timezone
+        return timezone.now() > self.fecha_expiracion
+    
+    def aprobar(self, usuario_verificador, observaciones=''):
+        """Aprobar la transferencia"""
+        self.estado = 'aprobada'
+        self.verificada_por = usuario_verificador
+        self.fecha_verificacion = timezone.now()
+        self.observaciones_verificador = observaciones
+        self.save()
+        
+        # Actualizar estado de la cotización
+        self.cotizacion.estado = 'pagada'
+        self.cotizacion.pago_completado = True
+        self.cotizacion.save()
+    
+    def rechazar(self, usuario_verificador, observaciones=''):
+        """Rechazar la transferencia"""
+        self.estado = 'rechazada'
+        self.verificada_por = usuario_verificador
+        self.fecha_verificacion = timezone.now()
+        self.observaciones_verificador = observaciones
+        self.save()

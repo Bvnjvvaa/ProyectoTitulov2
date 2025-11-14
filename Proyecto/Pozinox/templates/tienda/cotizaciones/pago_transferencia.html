@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pago por Transferencia - Cotización {{ cotizacion.numero_cotizacion }} - Pozinox{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-university me-2"></i>Pago por Transferencia Bancaria
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Resumen de la cotización -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Cotización: {{ cotizacion.numero_cotizacion }}</h5>
+                            <p class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ cotizacion.fecha_finalizacion|date:"d/m/Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h3 class="text-info mb-0">${{ cotizacion.total|floatformat:0 }}</h3>
+                            <p class="text-muted">Total a pagar</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Información de la cuenta bancaria -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-building me-2"></i>Datos para la Transferencia
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p class="mb-1 text-muted"><strong>Banco:</strong></p>
+                                        <h5 class="mb-0">{{ cuenta_bancaria.banco }}</h5>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p class="mb-1 text-muted"><strong>Tipo de Cuenta:</strong></p>
+                                        <h5 class="mb-0">{{ cuenta_bancaria.tipo_cuenta }}</h5>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p class="mb-1 text-muted"><strong>Número de Cuenta:</strong></p>
+                                        <h5 class="mb-0 font-monospace">{{ cuenta_bancaria.numero_cuenta }}</h5>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p class="mb-1 text-muted"><strong>RUT Titular:</strong></p>
+                                        <h5 class="mb-0">{{ cuenta_bancaria.rut_titular }}</h5>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <p class="mb-1 text-muted"><strong>Nombre del Titular:</strong></p>
+                                        <h5 class="mb-0">{{ cuenta_bancaria.nombre_titular }}</h5>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <p class="mb-1 text-muted"><strong>Email para enviar comprobante:</strong></p>
+                                        <h6 class="mb-0">{{ cuenta_bancaria.email_confirmacion }}</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Instrucciones para el Pago
+                        </h5>
+                        <hr>
+                        <ol class="mb-0">
+                            <li>Realiza la transferencia por el monto exacto: <strong>${{ cotizacion.total|floatformat:0 }}</strong></li>
+                            <li>Utiliza el número de cotización <strong>{{ cotizacion.numero_cotizacion }}</strong> como referencia en la transferencia</li>
+                            <li>Envía el comprobante de transferencia al email: <strong>{{ cuenta_bancaria.email_confirmacion }}</strong></li>
+                            <li>Una vez confirmado el pago, te contactaremos para coordinar la entrega</li>
+                            <li>El proceso de confirmación puede tardar entre 1 a 2 días hábiles</li>
+                        </ol>
+                    </div>
+
+                    <!-- Detalle de productos -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Resumen de productos:</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles %}
+                                    <tr>
+                                        <td>{{ detalle.producto.nombre }}</td>
+                                        <td>{{ detalle.cantidad }}</td>
+                                        <td>${{ detalle.precio_unitario|floatformat:0 }}</td>
+                                        <td class="text-end">${{ detalle.subtotal|floatformat:0 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                        <td class="text-end"><strong>${{ cotizacion.subtotal|floatformat:0 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>IVA (19%):</strong></td>
+                                        <td class="text-end"><strong>${{ cotizacion.iva|floatformat:0 }}</strong></td>
+                                    </tr>
+                                    <tr class="table-info">
+                                        <td colspan="3" class="text-end"><h5 class="mb-0">Total:</h5></td>
+                                        <td class="text-end"><h5 class="mb-0">${{ cotizacion.total|floatformat:0 }}</h5></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de confirmación -->
+                    <form method="post" enctype="multipart/form-data" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <!-- Sección de comprobante y comentarios -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-paperclip me-2"></i>Adjuntar Comprobante y Comentarios
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Campo de archivo -->
+                                <div class="mb-4">
+                                    <label for="comprobante_pago" class="form-label">
+                                        <strong>Comprobante de Transferencia <span class="text-danger">*</span></strong>
+                                    </label>
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="comprobante_pago" 
+                                           name="comprobante_pago" 
+                                           accept=".jpg,.jpeg,.png,.pdf,.gif"
+                                           required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Formatos aceptados: JPG, PNG, PDF, GIF. Tamaño máximo: 10MB
+                                    </div>
+                                    <div id="file-preview" class="mt-2"></div>
+                                </div>
+                                
+                                <!-- Campo de comentarios -->
+                                <div class="mb-3">
+                                    <label for="comentarios_pago" class="form-label">
+                                        <strong>Comentarios Adicionales (Opcional)</strong>
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="comentarios_pago" 
+                                              name="comentarios_pago" 
+                                              rows="4" 
+                                              placeholder="Agrega cualquier información adicional sobre tu transferencia (número de transacción, fecha, etc.)"></textarea>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Puedes incluir información adicional como número de transacción, fecha de transferencia, etc.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Importante:</strong> 
+                            <ul class="mb-0 mt-2">
+                                <li>Debes adjuntar el comprobante de transferencia para completar el proceso</li>
+                                <li>Una vez que envíes el comprobante y sea verificado, procesaremos tu pedido</li>
+                                <li>El proceso de verificación puede tardar entre 1 a 2 días hábiles</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'seleccionar_pago' cotizacion.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-info btn-lg">
+                                <i class="fas fa-check me-2"></i>Confirmar Pago por Transferencia
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Script para previsualizar el archivo -->
+                    <script>
+                        document.getElementById('comprobante_pago').addEventListener('change', function(e) {
+                            const file = e.target.files[0];
+                            const preview = document.getElementById('file-preview');
+                            
+                            if (file) {
+                                const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+                                const fileName = file.name;
+                                const fileType = file.type;
+                                
+                                let previewHTML = '<div class="alert alert-info mb-0">';
+                                previewHTML += '<i class="fas fa-file me-2"></i>';
+                                previewHTML += '<strong>Archivo seleccionado:</strong> ' + fileName;
+                                previewHTML += '<br><small>Tamaño: ' + fileSize + ' MB</small>';
+                                
+                                // Si es una imagen, mostrar preview
+                                if (fileType.startsWith('image/')) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        previewHTML += '<br><img src="' + e.target.result + '" class="img-thumbnail mt-2" style="max-width: 200px; max-height: 200px;">';
+                                        preview.innerHTML = previewHTML + '</div>';
+                                    };
+                                    reader.readAsDataURL(file);
+                                } else {
+                                    preview.innerHTML = previewHTML + '</div>';
+                                }
+                            } else {
+                                preview.innerHTML = '';
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

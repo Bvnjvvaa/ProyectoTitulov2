@@ -1,21 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}{{ titulo }} - Pozinox{% endblock %}
+{% block admin_title %}{{ titulo }}{% endblock %}
 
-{% block extra_css %}
+{% block admin_extra_css %}
 <style>
-    .form-container {
-        min-height: calc(100vh - 200px);
-        padding: 6rem 0 2rem 0;
-    }
-    
     .form-header {
-        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
         color: white;
         padding: 1.5rem 2rem;
         margin-bottom: 2rem;
-        border-radius: 15px;
+        border-radius: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -23,31 +18,31 @@
     
     .form-header h1 {
         margin: 0;
-        font-weight: 700;
+        font-weight: 600;
     }
     
     .btn-back {
         background: rgba(255,255,255,0.2);
-        border: 2px solid white;
+        border: 1px solid rgba(255,255,255,0.3);
         color: white;
         padding: 0.75rem 1.5rem;
-        border-radius: 10px;
+        border-radius: 6px;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.3s ease;
     }
     
     .btn-back:hover {
         background: white;
-        color: #1e3a8a;
+        color: #007bff;
         text-decoration: none;
     }
     
     .form-card {
         background: white;
-        border-radius: 15px;
+        border-radius: 8px;
         padding: 2rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
     }
     
     .form-section {
@@ -165,14 +160,13 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h1><i class="fas fa-boxes me-3"></i>{{ titulo }}</h1>
-        <a href="{% url 'lista_productos_admin' %}" class="btn-back">
-            <i class="fas fa-arrow-left me-2"></i>Volver a Lista
-        </a>
-    </div>
+{% block admin_content %}
+<div class="form-header">
+    <h1><i class="fas fa-boxes me-3"></i>{{ titulo }}</h1>
+    <a href="{% url 'lista_productos_admin' %}" class="btn-back">
+        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+    </a>
+</div>
     
     <div class="form-card">
         <form method="post" enctype="multipart/form-data">
